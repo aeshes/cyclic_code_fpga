@@ -2,6 +2,7 @@ module cyclic_coder_systematic_tb();
 
     logic clk;
     logic enable;
+    logic reset;
     logic in;
     logic out;
     
@@ -11,10 +12,12 @@ module cyclic_coder_systematic_tb();
         forever #5 clk = ~clk;
     end
     
-    cyclic_coder_systematic uut(clk, enable, in, out);
+    cyclic_coder_systematic uut(clk, enable, reset, in, out);
     
     initial begin
-        #1 enable = 1; #10
+        #1 reset = 1; #10
+        reset = 0; #10
+        enable = 1; #10
         
         // Тест 11111000001
         // Должно кодироваться в x^14+x^13+x^12+x^10+x^6+x^4+x+1 = 11101001010011
