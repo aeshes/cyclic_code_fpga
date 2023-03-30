@@ -15,18 +15,18 @@ module cyclic_coder_systematic(
     wire feedback = (bit_counter >= 11) ? divider_datapath : 0;
     
     always @(posedge clk)
-        if (enable) begin
-            bit_counter <= bit_counter + 1'd1;
-            if (bit_counter == 4'b1111)
-                bit_counter <= 4'd0;
-        end
-    
-    always @(posedge clk) begin
         if (reset) begin
             divider <= '0;
             buffer  <= '0;
             bit_counter <= '0;
+            out <= 0;
         end
+        else if (enable && bit_counter == 4'b1111)
+            bit_counter <= '0;
+        else
+            bit_counter <= bit_counter + 1;
+    
+    always @(posedge clk) begin
         if (enable) begin
              divider[3] <= in ^ feedback;
              divider[2] <= divider[3] ^ feedback;
@@ -37,12 +37,9 @@ module cyclic_coder_systematic(
              buffer[2] <= buffer[3];
              buffer[1] <= buffer[2];
              buffer[0] <= buffer[1];
-         end else begin
-            divider <= 4'b0000;
-            buffer  <= 4'b0000;
-        end
+             
+             out = (bit_counter >= 11) ? buffer_datapath : divider_datapath;
+         end
     end
-    
-    assign out = (bit_counter >= 11) ? buffer_datapath : divider_datapath;
         
 endmodule
