@@ -6,9 +6,9 @@ module cyclic_coder_systematic(
     output logic out
 );
 
-    reg [3:0] divider;
-    reg [3:0] buffer;
-    reg [3:0] bit_counter;
+    logic [3:0] divider;
+    logic [3:0] buffer;
+    logic [3:0] bit_counter;
     
     wire divider_datapath = divider[0];
     wire buffer_datapath = buffer[0];
@@ -19,27 +19,19 @@ module cyclic_coder_systematic(
             divider <= '0;
             buffer  <= '0;
             bit_counter <= '0;
-            out <= 0;
         end
-        else if (enable && bit_counter == 4'b1111)
+        else if (enable && (bit_counter + 1) == 4'b1111)
             bit_counter <= '0;
         else
             bit_counter <= bit_counter + 1;
     
     always @(posedge clk) begin
         if (enable) begin
-             divider[3] <= in ^ feedback;
-             divider[2] <= divider[3] ^ feedback;
-             divider[1] <= divider[2];
-             divider[0] <= divider[1];
-             
-             buffer[3] <= in;
-             buffer[2] <= buffer[3];
-             buffer[1] <= buffer[2];
-             buffer[0] <= buffer[1];
-             
-             out = (bit_counter >= 11) ? buffer_datapath : divider_datapath;
-         end
+             divider <= { in ^ feedback, divider[3] ^ feedback, divider[2:1] };
+             buffer  <= { in, buffer[3:1] };
+        end
     end
+    
+    assign out = (bit_counter >= 11) ? buffer_datapath : divider_datapath;
         
 endmodule
